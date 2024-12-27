@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+        PORT: 3000
+        DATABASE_URL: postgresql://company_test:123456@localhost:5432/company
+    depends_on:
+      - db
+    volumes:
+      - ./server:/app
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    # environment:
+    #   VUE_APP_API_URL: http://localhost:3000 # Пример передачи переменной
+    # volumes:
+    #   - ./client:/app
+    # env_file:
+    #   - ./client/.env
+    
+  db:
+    image: postgres:15
+    container_name: postgres_container
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: company_test
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: company
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Храним данные в volume для их сохранности при перезапуске
+      - ./server/database.sql:/docker-entrypoint-initdb.d/database.sql # Монтируем SQL-скрипт
+
+volumes:
+  postgres_data: # Volume для базы данных
